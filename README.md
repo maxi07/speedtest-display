@@ -5,13 +5,23 @@ The script will check your internet connection every 120 seconds and print the u
 This script is still under development!
 
 ## Installation
-To install clone this repository and run 'sudo ./install.sh'. The device will reboot after completed. 
+To install clone this repository and run
+```bash
+sudo ./install.sh
+```
+The device will reboot after completed. 
 
 ## Run
-To run the script, execute 'python3 run-speedtest-display.py'.
+To run the script, execute
+```bash
+python3 run-speedtest-display.py
+```
 
 ## Options
-To print all available options, use 'python3 run-speedtest-display.py --help'.
+To print all available options, use 
+```bash
+python3 run-speedtest-display.py --help
+```
 
 ## Credits
 Credits go to https://github.com/the-raspberry-pi-guy/ on teaching how to communicate with i2c

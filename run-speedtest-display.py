@@ -1,5 +1,13 @@
 # Python script to show network speed on a display
 
+
+# #############
+# Define Var
+printcsv = 1
+sleep = 120 # In seconds
+# #############
+
+
 # Define Error Logging
 def printerror(ex):
 	print('\033[31m' + ex + '\033[0m')
@@ -26,6 +34,28 @@ except ModuleNotFoundError:
 except:
 	printerror("An unknown error occured while loading modules.")
 	exit(2)
+
+# Check for arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("--version", "-v", help="Prints the version", action="store_true")
+parser.add_argument("--nocsv", "-nocsv", help="Disbales the csv file saving", action="store_true")
+parser.add_argument("--sleep", "-s", help="Sets the countdown time between each run", type=int, default=120)
+
+args = parser.parse_args()
+if args.version:
+	print("Version: 1.0")
+	exit(0)
+
+if args.nocsv:
+	printwarning("Option: CSV saving disabled!")
+	printcsv = 0
+
+if args.sleep:
+	if args.sleep < 1:
+		printerror("Value must be greater than 1.")
+		exit(2)
+	sleep = args.sleep
+	printwarning("Option: Sleep set to " + str(args.sleep))
 
 
 # Load driver for LCD display
@@ -93,22 +123,6 @@ if __name__ == '__main__':
 	download = 0
 	upload = 0
 	run = 0
-	printcsv = 1
-
-	# Check for arguments
-	parser = argparse.ArgumentParser()
-	parser.add_argument("--version", "-v", help="Prints the version", action="store_true")
-	parser.add_argument("--nocsv", "-nocsv", help="Disbales the csv file saving", action="store_true")
-
-	args = parser.parse_args()
-	if args.version:
-		print("Version: 1.0")
-		exit(0)
-
-	if args.nocsv:
-		printwarning("Option: CSV saving disabled!")
-		printcsv = 0
-
 
 	#Create CSV file if it dows not exist
 	if printcsv == 1:
@@ -166,4 +180,4 @@ if __name__ == '__main__':
 			except Exception as e:
 				printerror("Failed writing to csv.")
 				printerror(e)
-		countdown(int(120))
+		countdown(int(sleep))

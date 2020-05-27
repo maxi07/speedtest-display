@@ -9,7 +9,10 @@ To install clone this repository and run
 sudo ./install.sh
 ```
 The device will reboot after completed. 
-> :warning: **Warning**: This script is still under development and not fully tested!
+
+## Wiring / LCD Display
+The script was developed for a 16x2 I2C display, which can be found for cheap on Amazon.com.
+For wiring setup, please check the [wiki.](https://github.com/maxi07/speedtest-display/wiki/Connect-LCD-display)
 
 ## Run
 To run the script, execute

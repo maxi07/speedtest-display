@@ -119,3 +119,10 @@ class lcd:
       for line in fontdata:
           for char in line:
               self.lcd_write_char(char)
+
+   # define backlight on/off (lcd.backlight(1); off= lcd.backlight(0)
+   def backlight(self, state): # for state, 1 = on, 0 = off
+      if state == 1:
+         self.lcd_device.write_cmd(LCD_BACKLIGHT)
+      elif state == 0:
+         self.lcd_device.write_cmd(LCD_NOBACKLIGHT)

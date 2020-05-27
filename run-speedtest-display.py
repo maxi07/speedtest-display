@@ -1,5 +1,6 @@
 # Python script to show network speed on a display
-
+# Author: Maximilian Krause
+# Date 27.05.2020
 
 # #############
 # Define Var
@@ -41,15 +42,16 @@ except:
 # Check for arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--version", "-v", help="Prints the version", action="store_true")
-parser.add_argument("--nocsv", "-nocsv", help="Disbales the csv file saving", action="store_true")
+parser.add_argument("--csvoff", "-c", help="Disbales the csv file saving", action="store_true")
 parser.add_argument("--sleep", "-s", help="Sets the countdown time between each run", type=int)
+parser.add_argument("--backlightoff", "-b", help="Turns off the backlight of the lcd", action="store_true")
 
 args = parser.parse_args()
 if args.version:
 	print(str(version))
 	exit(0)
 
-if args.nocsv:
+if args.csvoff:
 	printwarning("Option: CSV saving disabled!")
 	printcsv = 0
 
@@ -64,7 +66,15 @@ if args.sleep:
 # Load driver for LCD display
 try:
 	display = lcddriver.lcd()
-	display.lcd_display_string("Booting speedtest", 1)
+
+	#Check backlight option
+	if args.backlightoff:
+		printwarning("Option: Backlight turned off!")
+		display.backlight(0)
+	else:
+		display.backlight(1)
+
+	display.lcd_display_string("Load speedtest", 1)
 	display.lcd_display_string("V " + str(version), 2)
 	time.sleep(1.5)
 except IOError:
@@ -168,7 +178,6 @@ def handler(signal_received, frame):
 	exit(0)
 
 
-
 #Main
 if __name__ == '__main__':
 	# Tell Python to run the handler() function when SIGINT is recieved
@@ -193,7 +202,7 @@ if __name__ == '__main__':
 
 	#Print IP to display
 	display.lcd_display_string(get_ip(), 2)
-
+	time.sleep(1.5)
 	print('Running. Press CTRL-C to exit.')
 	while True:
 		print("========== Run " + str(run) + " ==========")
@@ -207,6 +216,7 @@ if __name__ == '__main__':
 		print("Testing network speed, please wait... ", end="\r")
 
 		#Download speed
+		display.lcd_display_string("Download Test...", 2)
 		st = speedtest.Speedtest()
 		download = st.download()
 		download = round(download / 1000 / 1000, 2)
@@ -219,6 +229,7 @@ if __name__ == '__main__':
 		run = run + 1
 
 		# Upload speed
+		display.lcd_display_string("Upload Test...  ", 2)
 		upload = st.upload()
 		upload = round(upload / 1000 / 1000, 2)
 		print("                                           ", end="\r")
@@ -234,7 +245,7 @@ if __name__ == '__main__':
 		avg_s = round(avg, 0)
 
 		display.lcd_clear()
-		display.lcd_display_string(chr(1) + str(int(download_s)) + " " + chr(0) + str(int(upload_s)) + " " + chr(2) + str(int(avg_s)), 1)
+		display.lcd_display_string(chr(1) + str(int(download_s)) + "   " + chr(0) + str(int(upload_s)) + "   " + chr(2) + str(int(avg_s)), 1)
 
 		# Save to CSV
 		# datetime object containing current date and time
@@ -249,4 +260,7 @@ if __name__ == '__main__':
 			except Exception as e:
 				printerror("Failed writing to csv.")
 				printerror(e)
+		done_download = False
+		done_upload = False
+
 		countdown(int(sleep))

@@ -3,7 +3,9 @@
 
 # #############
 # Define Var
+version = 1.1
 printcsv = 1
+errormsg = "Null"
 sleep = 120 # In seconds
 # #############
 
@@ -27,6 +29,7 @@ try:
 	from datetime import datetime
 	import argparse
 	import lcddriver
+	import socket
 except ModuleNotFoundError:
 	printerror("The app could not be started.")
 	printerror("Please run 'sudo ./install.sh' first.")
@@ -39,11 +42,11 @@ except:
 parser = argparse.ArgumentParser()
 parser.add_argument("--version", "-v", help="Prints the version", action="store_true")
 parser.add_argument("--nocsv", "-nocsv", help="Disbales the csv file saving", action="store_true")
-parser.add_argument("--sleep", "-s", help="Sets the countdown time between each run", type=int, default=120)
+parser.add_argument("--sleep", "-s", help="Sets the countdown time between each run", type=int)
 
 args = parser.parse_args()
 if args.version:
-	print("Version: 1.0")
+	print(str(version))
 	exit(0)
 
 if args.nocsv:
@@ -62,13 +65,14 @@ if args.sleep:
 try:
 	display = lcddriver.lcd()
 	display.lcd_display_string("Booting speedtest", 1)
-	display.lcd_display_string("V 1.0", 2)
+	display.lcd_display_string("V " + str(version), 2)
+	time.sleep(1.5)
 except IOError:
 	printerror("The connection to the display failed.")
 	printerror("Please check your connection for all pins.")
 	printerror("From bash you can run i2cdetect -y 1")
 
-	printerror("Would you like to proceed anyway (More error might occur)? [y/n]")
+	printerror("Would you like to proceed anyway (More errors might occur)? [y/n]")
 	yes = {'yes', 'y'}
 	no = {'no', 'n'}
 	choice = input().lower()
@@ -83,15 +87,37 @@ except Exception as e:
 	printerror("An unknown error occured while connecting to the lcd.")
 	printerror(e)
 
+# Define custom LCD characters
+fontdata1 = [
+	#char(0) - Up Arrow
+	[0b00100, 0b01110, 0b10101, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100],
+
+	#char(1) - Down Arrow
+	[0b00100, 0b00100, 0b00100, 0b00100, 0b00100, 0b10101, 0b01110, 0b00100],
+
+	#char(2) - Avg Symbol
+	[0b00000, 0b00001, 0b01110, 0b01010, 0b01010, 0b01110, 0b10000, 0b0000]
+]
+
+display.lcd_load_custom_chars(fontdata1)
+
 #Countdown for minutes
 def countdown(t):
+	total = t
 	while t:
 		mins, secs = divmod(t, 60)
 		timer = '{:02d}:{:02d}'.format(mins, secs)
 		print("Time until next run: " + timer, end="\r")
 		time.sleep(1)
 		t -= 1
+		progress = t / total * 10
+		pbar = ""
+		while progress >= 0:
+			pbar = pbar + "X"
+			progress = progress - 1
+		display.lcd_display_string(timer + str(pbar), 2)
 	print(" ", end="\r")
+
 
 #Check or internet connection
 def is_connected():
@@ -105,11 +131,32 @@ def is_connected():
     return False
 
 
+# Read IP Adress
+def get_ip():
+	try:
+		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		s.connect(("8.8.8.8", 80))
+		ip_address = s.getsockname()[0]
+		s.close()
+		return str(ip_address)
+	except:
+		return str("0.0.0.0")
+		printerror("Unable to get IP")
+
+
 #Handles Ctrl+C
 def handler(signal_received, frame):
 	# Handle any cleanup here
 	print()
 	printwarning('SIGINT or CTRL-C detected. Please wait until the service has stopped.')
+	if errormsg == "Null":
+		display.lcd_clear()
+		display.lcd_display_string("Manual cancel.", 1)
+		display.lcd_display_string("Exiting app.", 2)
+	else:
+		display.lcd_clear()
+		display.lcd_display_string(str(errormsg), 1)
+		display.lcd_display_string("Exiting app.", 2)
 	exit(0)
 
 
@@ -135,16 +182,22 @@ if __name__ == '__main__':
 				printerror("Failed writing to csv.")
 				printerror(e)
 
+
+	#Print IP to display
+	display.lcd_display_string(get_ip(), 2)
+
 	print('Running. Press CTRL-C to exit.')
 	while True:
 		print("========== Run " + str(run) + " ==========")
 		# First, check connection
 		result = is_connected()
 		if is_connected() == False:
-			print("No network connection was found!")
-			exit()
+			printerror("No network connection was found!")
+			errormsg = "No network."
+			exit(1)
 
 		print("Testing network speed, please wait... ", end="\r")
+
 		#Download speed
 		st = speedtest.Speedtest()
 		download = st.download()
@@ -166,6 +219,14 @@ if __name__ == '__main__':
 		print("Upload:\t\t" + str(upload) + " Mbit/s")
 		print("Average:\t" + str(avg) + " Mbit/s")
 		print(" ")
+
+		# Print to display
+		upload_s = round(upload, 0)
+		download_s = round(download, 0)
+		avg_s = round(avg, 0)
+
+		display.lcd_clear()
+		display.lcd_display_string(chr(0) + str(download_s) + " " + chr(1) + str(upload_s) + " " + chr(2) + str(avg_s), 1)
 
 		# Save to CSV
 		# datetime object containing current date and time

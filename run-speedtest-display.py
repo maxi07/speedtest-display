@@ -88,6 +88,7 @@ except Exception as e:
 	printerror(e)
 
 # Define custom LCD characters
+# Char generator can be found at https://omerk.github.io/lcdchargen/
 fontdata1 = [
 	#char(0) - Up Arrow
 	[0b00100, 0b01110, 0b10101, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100],
@@ -96,7 +97,10 @@ fontdata1 = [
 	[0b00100, 0b00100, 0b00100, 0b00100, 0b00100, 0b10101, 0b01110, 0b00100],
 
 	#char(2) - Avg Symbol
-	[0b00000, 0b00001, 0b01110, 0b01010, 0b01010, 0b01110, 0b10000, 0b0000]
+	[0b00000, 0b00001, 0b01110, 0b01010, 0b01010, 0b01110, 0b10000, 0b0000],
+
+	#char(3) - Progressbar-Symbol
+	[0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b11111]
 ]
 
 display.lcd_load_custom_chars(fontdata1)
@@ -104,18 +108,22 @@ display.lcd_load_custom_chars(fontdata1)
 #Countdown for minutes
 def countdown(t):
 	total = t
+	progvalue = 0
+	display.lcd_display_string("      ..........", 2)
 	while t:
 		mins, secs = divmod(t, 60)
 		timer = '{:02d}:{:02d}'.format(mins, secs)
 		print("Time until next run: " + timer, end="\r")
 		time.sleep(1)
 		t -= 1
-		progress = t / total * 10
+		progvalue += 1
+		progress = progvalue / total * 10
+		progress = round(progress, 0)
 		pbar = ""
-		while progress >= 0:
-			pbar = pbar + "X"
+		while progress > 0:
+			pbar = pbar + chr(3)
 			progress = progress - 1
-		display.lcd_display_string(timer + str(pbar), 2)
+		display.lcd_display_string(timer + " " + str(pbar), 2)
 	print(" ", end="\r")
 
 
@@ -226,7 +234,7 @@ if __name__ == '__main__':
 		avg_s = round(avg, 0)
 
 		display.lcd_clear()
-		display.lcd_display_string(chr(0) + str(download_s) + " " + chr(1) + str(upload_s) + " " + chr(2) + str(avg_s), 1)
+		display.lcd_display_string(chr(1) + str(int(download_s)) + " " + chr(0) + str(int(upload_s)) + " " + chr(2) + str(int(avg_s)), 1)
 
 		# Save to CSV
 		# datetime object containing current date and time

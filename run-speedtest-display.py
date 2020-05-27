@@ -8,6 +8,7 @@ version = 1.1
 printcsv = 1
 errormsg = "Null"
 sleep = 120 # In seconds
+avglist = []
 # #############
 
 
@@ -221,18 +222,25 @@ if __name__ == '__main__':
 		download = st.download()
 		download = round(download / 1000 / 1000, 2)
 
-		if run == 0:
-			avg = download
-		else:
-			avg = round(((avg + download) / 2), 2)
-
-		run = run + 1
 
 		# Upload speed
 		display.lcd_display_string("Upload Test...  ", 2)
 		upload = st.upload()
 		upload = round(upload / 1000 / 1000, 2)
 		print("                                           ", end="\r")
+
+
+		#Calculate Average
+		if len(avglist) >= 10:
+			del avglist[0]
+		avglist.append(download)
+		avg_temp = 0
+		for x in avglist:
+			avg_temp += x
+		avg = round(avg_temp / len(avglist), 2)
+
+
+		run = run + 1
 
 		print("Download:\t" + str(download) + " Mbit/s")
 		print("Upload:\t\t" + str(upload) + " Mbit/s")

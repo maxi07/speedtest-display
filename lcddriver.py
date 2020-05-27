@@ -106,3 +106,16 @@ class lcd:
    def lcd_clear(self):
       self.lcd_write(LCD_CLEARDISPLAY)
       self.lcd_write(LCD_RETURNHOME)
+
+   # Prints single char
+   def lcd_write_char(self, charvalue, mode=1):
+      self.lcd_write_four_bits(mode | (charvalue & 0xF0))
+      self.lcd_write_four_bits(mode | ((charvalue << 4) & 0xF0))
+
+
+   # Loads custom chars
+   def lcd_load_custom_chars(self, fontdata):
+      self.lcd_write(0x40)
+      for line in fontdata:
+          for char in line:
+              self.lcd_write_char(char)

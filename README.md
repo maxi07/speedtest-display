@@ -2,6 +2,7 @@
 An open source python script to display network speed in command line and write it to an external I2C 16x2 display.
 
 The script will check your internet connection every 120 seconds (changeable with options) and print the up- and download speed into the console and display. In addition, it will save the result into a csv file.
+The display contains of the current download speed, upload speed and the average from the last ten probes. The timer can be customized with the option ```python3 run-speedtest-display --sleep [integer]```
 
 <img src="https://raw.githubusercontent.com/maxi07/speedtest-display/master/doc/Progress_lcd.JPEG" align="center"/>
 

@@ -278,8 +278,23 @@ if __name__ == '__main__':
 		download_s = round(download, 0)
 		avg_s = round(avg, 0)
 
+		# Do formatting for display
+		pad2 = " " * 2
+		pad3 = " " * 3
+
+		if upload_s > 99:
+			padding1 = pad2
+		else:
+			padding1 = pad3
+
+		if download_s > 99:
+			padding2 = pad2
+		else:
+			padding2 = pad3
+
+
 		display.lcd_clear()
-		display.lcd_display_string(chr(1) + str(int(download_s)) + "   " + chr(0) + str(int(upload_s)) + "   " + chr(2) + str(int(avg_s)), 1)
+		display.lcd_display_string(chr(1) + str(int(download_s)) + padding1 + chr(0) + str(int(upload_s)) + padding2 + chr(2) + str(int(avg_s)), 1)
 
 		# Save to CSV
 		# datetime object containing current date and time

@@ -4,7 +4,7 @@
 
 # #############
 # Define Var
-version = 1.1
+version = 1.2
 printcsv = 1
 errormsg = "Null"
 sleep = 30 # In seconds
@@ -48,6 +48,7 @@ parser.add_argument("--version", "-v", help="Prints the version", action="store_
 parser.add_argument("--csvoff", "-c", help="Disbales the csv file saving", action="store_true")
 parser.add_argument("--sleep", "-s", help="Sets the countdown time between each run", type=int)
 parser.add_argument("--backlightoff", "-b", help="Turns off the backlight of the lcd", action="store_true")
+parser.add_argument("--update", "-u", help="Checks for new update", action="store_true")
 
 args = parser.parse_args()
 if args.version:
@@ -205,6 +206,13 @@ if __name__ == '__main__':
 	download = 0
 	upload = 0
 	run = 0
+
+	# Check if --update tag was used for only retrieving version
+	if args.update:
+		checkUpdate()
+		display.lcd_clear()
+		exit(0)
+
 
 	#Create CSV file if it dows not exist
 	if printcsv == 1:

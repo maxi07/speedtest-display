@@ -7,18 +7,19 @@
 version = 1.1
 printcsv = 1
 errormsg = "Null"
-sleep = 120 # In seconds
+sleep = 30 # In seconds
 avglist = []
 # #############
 
 
 # Define Error Logging
 def printerror(ex):
-	print('\033[31m' + ex + '\033[0m')
+	print('\033[31m' + str(ex) + '\033[0m')
 
 def printwarning(warn):
-	print('\033[33m' + warn + '\033[0m')
+	print('\033[33m' + str(warn) + '\033[0m')
 
+print("Loading modules...")
 try:
 	import speedtest
 	import socket
@@ -29,6 +30,7 @@ try:
 	import os.path
 	from os import path
 	from datetime import datetime
+	import requests
 	import argparse
 	import lcddriver
 	import socket
@@ -178,6 +180,21 @@ def handler(signal_received, frame):
 		display.lcd_display_string("Exiting app.", 2)
 	exit(0)
 
+# Checks for updates
+def checkUpdate():
+	updateUrl = "https://raw.githubusercontent.com/maxi07/speedtest-display/master/doc/version"
+	try:
+		f = requests.get(updateUrl)
+		latestVersion = float(f.text)
+		if latestVersion > version:
+			printwarning("There is an update available.")
+			printwarning("Head over to https://github.com/maxi07/speedtest-display to get the hottest features.")
+		else:
+			print("Application is running latest version.")
+	except Exception as e:
+		printerror("An error occured while searching for updates.")
+		printerror(e)
+
 
 #Main
 if __name__ == '__main__':
@@ -204,6 +221,7 @@ if __name__ == '__main__':
 	#Print IP to display
 	display.lcd_display_string(get_ip(), 2)
 	time.sleep(1.5)
+	checkUpdate()
 	print('Running. Press CTRL-C to exit.')
 	while True:
 		print("========== Run " + str(run) + " ==========")

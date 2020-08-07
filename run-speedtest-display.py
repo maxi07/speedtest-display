@@ -4,7 +4,7 @@
 
 # #############
 # Define Var
-version = 1.2
+version = 1.3
 printcsv = 1
 errormsg = "Null"
 sleep = 30 # In seconds
@@ -181,6 +181,21 @@ def handler(signal_received, frame):
 		display.lcd_display_string("Exiting app.", 2)
 	exit(0)
 
+# Save to CSV
+def SaveToCSV(down, up, average):
+	# datetime object containing current date and time
+	now = datetime.now()
+	# dd/mm/YY H:M:S
+	dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+	if printcsv == 1:
+		try:
+			with open('networkspeeds.csv', 'a', newline='') as csvfile:
+				resultwriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+				resultwriter.writerow([down, up, average, dt_string])
+		except Exception as e:
+			printerror("Failed writing to csv.")
+			printerror(e)
+
 # Checks for updates
 def checkUpdate():
 	updateUrl = "https://raw.githubusercontent.com/maxi07/speedtest-display/master/doc/version"
@@ -233,12 +248,16 @@ if __name__ == '__main__':
 	print('Running. Press CTRL-C to exit.')
 	while True:
 		print("========== Run " + str(run) + " ==========")
+		run = run + 1
 		# First, check connection
 		result = is_connected()
 		if is_connected() == False:
 			printerror("No network connection was found!")
-			errormsg = "No network."
-			exit(1)
+			display.lcd_clear()
+			display.lcd_display_string("No Network!", 1)
+			SaveToCSV(0,0,0)
+			countdown(int(sleep))
+			continue
 
 		print("Testing network speed, please wait... ", end="\r")
 
@@ -264,9 +283,6 @@ if __name__ == '__main__':
 		for x in avglist:
 			avg_temp += x
 		avg = round(avg_temp / len(avglist), 2)
-
-
-		run = run + 1
 
 		print("Download:\t" + str(download) + " Mbit/s")
 		print("Upload:\t\t" + str(upload) + " Mbit/s")
@@ -296,19 +312,7 @@ if __name__ == '__main__':
 		display.lcd_clear()
 		display.lcd_display_string(chr(1) + str(int(download_s)) + padding1 + chr(0) + str(int(upload_s)) + padding2 + chr(2) + str(int(avg_s)), 1)
 
-		# Save to CSV
-		# datetime object containing current date and time
-		now = datetime.now()
-		# dd/mm/YY H:M:S
-		dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-		if printcsv == 1:
-			try:
-				with open('networkspeeds.csv', 'a', newline='') as csvfile:
-					resultwriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-					resultwriter.writerow([download, upload, avg, dt_string])
-			except Exception as e:
-				printerror("Failed writing to csv.")
-				printerror(e)
+		SaveToCSV(download, upload, avg)
 		done_download = False
 		done_upload = False
 
